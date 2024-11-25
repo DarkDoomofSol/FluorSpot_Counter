@@ -82,7 +82,7 @@ class menuBar(tk.Frame):
         topBar.add_cascade(label="Processing", menu=secondMenu)
         #third drop-down menu
         thirdMenu = tk.Menu(topBar, tearoff=0)
-        thirdMenu.add_command(label="Instructions", command=main_frame.quit)
+        thirdMenu.add_command(label="Instructions", command=webbrowser.open("https://github.com/DarkDoomofSol/FluorSpot_Counter/blob/main/README.md"))
         topBar.add_cascade(label="Help", menu=thirdMenu)
                            
         #forming menues
