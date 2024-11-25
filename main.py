@@ -42,8 +42,6 @@ frame_img.bind(
 
 scroll_canvas.create_window((0, 0), window=frame_img, anchor="nw")
 
-#frame_img.place(relx = 0.1, y = 0, relwidth = 0.9, relheight = 0.6)
-
 frame_pandas = tk.Frame(master_window, background="#A9A5A5")
 frame_pandas.place(relx = 0.2, rely = 0.6, relwidth = 0.9, relheight = 0.4)
 
@@ -279,15 +277,15 @@ def counting_spots():
     params.minArea = min_area_var.get()
     #params.maxArea = max_area
 
-    params.filterByCircularity = False
+    params.filterByCircularity = True
     params.minCircularity = min_circ_var.get()
     #params.maxCircularity = max_circ
 
-    params.filterByConvexity = False
+    params.filterByConvexity = True
     params.minConvexity = min_conv_var.get()
     #params.maxConvexity = max_convex
 
-    params.filterByInertia = False
+    params.filterByInertia = True
     params.minInertiaRatio = min_inertia_var.get()
     #params.maxInertiaRatio = max_inertia
 
@@ -319,6 +317,7 @@ def counting_spots():
     refresh_image_display()
     refresh_pandas_display()
 
+#function for refreshing the image displayed on screen
 def refresh_image_display():
 
     for widget in frame_img.winfo_children():
@@ -344,6 +343,7 @@ def refresh_image_display():
         img_label = tk.Label(frame_img, text= filename)
         img_label.grid(column=column, row=row * 2, padx=10, pady=10)
 
+#function for refreshing the pandas table
 def refresh_pandas_display():
     for widget in frame_pandas.winfo_children():
         widget.destroy()
@@ -356,7 +356,7 @@ class img_wind(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.grid(sticky= "nw")
-        #self.display_img()
+        
     
 
 # creating a class to handle the pandas data frame
@@ -364,14 +364,9 @@ class pandas_wind(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.grid(sticky= "nw")
-        #self.display_pandas()
-
-    #def display_pandas(self):
-        #df = pd.DataFrame()
-        #df = pdt.Table(frame_pandas, dataframe=df)
-        #df.show()
         
-
+        
+#the "apps" initialising
 app = menuBar(main_frame)
 app = oper_wind(frame_ops)
 app = img_wind(frame_img)
