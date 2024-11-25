@@ -1,2 +1,2 @@
-# FluorSpot_Counter
+# FluoroSpot_Counter
  GUI using opencvs simpleblobdetector to detect spots from flurospot
