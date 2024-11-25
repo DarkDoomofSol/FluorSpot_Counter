@@ -53,10 +53,12 @@ master_window.resizable(True, True)
 master_window.configure(background = "black")
 
 
+
 images = []
 img_name = []
 img_ref = []
 img_keypoints = []
+number_of_spots = []
 
 
 #creating a class for the menu bar
@@ -82,7 +84,7 @@ class menuBar(tk.Frame):
         topBar.add_cascade(label="Processing", menu=secondMenu)
         #third drop-down menu
         thirdMenu = tk.Menu(topBar, tearoff=0)
-        thirdMenu.add_command(label="Instructions", command=webbrowser.open("https://github.com/DarkDoomofSol/FluorSpot_Counter/blob/main/README.md"))
+        thirdMenu.add_command(label="Instructions", command= lambda: webbrowser.open("https://github.com/DarkDoomofSol/FluorSpot_Counter/blob/main/README.md"))
         topBar.add_cascade(label="Help", menu=thirdMenu)
                            
         #forming menues
@@ -136,8 +138,8 @@ class oper_wind(tk.Frame):
 
         filt_min_dist_Label = tk.Label(frame_ops, text = "Filter by min distance between blobs:")
         filt_min_dist_Label.grid(column=2, row=11, padx=5, pady=(10, 0), columnspan=2)
-        min_dist_var = tk.DoubleVar(value=0)
-        min_dist_spinbox = tk.Spinbox(frame_ops, from_=0, to=100, textvariable = min_dist_var, justify= "center", increment = 1, command = lambda: update_count_spots())
+        min_dist_var = tk.DoubleVar(value=1)
+        min_dist_spinbox = tk.Spinbox(frame_ops, from_=1, to=100, textvariable = min_dist_var, justify= "center", increment = 1, command = lambda: update_count_spots())
         min_dist_spinbox.grid(column=2, row=12, padx=10, pady=(0, 10), columnspan=2)
 
         filt_min_thresh_Label = tk.Label(frame_ops, text = "Filter by min threshhold:")
@@ -160,18 +162,13 @@ class oper_wind(tk.Frame):
 
         filt_min_repeat_Label = tk.Label(frame_ops, text = "Filter by min repeatability:")
         filt_min_repeat_Label.grid(column=2, row=17, padx=5, pady=(10, 0), columnspan=2)
-        min_repeat_var = tk.DoubleVar(value=2)
+        min_repeat_var = tk.IntVar(value=2)
         min_repeat_spinbox = tk.Spinbox(frame_ops, from_=1, to=10, textvariable = min_repeat_var, justify= "center", command = lambda: update_count_spots())
         min_repeat_spinbox.grid(column=2, row=18, padx=10, pady=(0, 10), columnspan=2)
 
 
-        count_spots_button = tk.Button(frame_ops, text = "Count Spots:", command = lambda: update_count_spots)
+        count_spots_button = tk.Button(frame_ops, text = "Count Spots:", command = counting_spots)
         count_spots_button.grid(column=2, row=19, padx=10, pady=20, columnspan=2)
-
-def live_check_spots():
-    None
-    
-
 
 #create a button for opening multiple files and storing them in a list
 def open_files():
@@ -189,7 +186,6 @@ def open_files():
         # Add file path to the set of opened files
         opened_files.add(file_path)
         
-
     global img_canvas
     global img_label
     global img_tk
@@ -241,15 +237,15 @@ def update_count_spots():
     params.minArea = min_area_var.get()
     #params.maxArea = max_area
 
-    params.filterByCircularity = True
+    params.filterByCircularity = False
     params.minCircularity = min_circ_var.get()
     #params.maxCircularity = max_circ
 
-    params.filterByConvexity = True
+    params.filterByConvexity = False
     params.minConvexity = min_conv_var.get()
     #params.maxConvexity = max_convex
 
-    params.filterByInertia = True
+    params.filterByInertia = False
     params.minInertiaRatio = min_inertia_var.get()
     #params.maxInertiaRatio = max_inertia
 
@@ -261,6 +257,7 @@ def update_count_spots():
     params.minRepeatability = min_repeat_var.get()
 
     detector = cv2.SimpleBlobDetector_create(params)
+
     img_keypoints.clear()
     img_ref.clear()
 
@@ -271,6 +268,56 @@ def update_count_spots():
         img_keypoints.append(img_with_keypoints)
 
     refresh_image_display()
+
+def counting_spots():
+    global df
+    params = cv2.SimpleBlobDetector_Params()
+
+    params.filterByColor = False            #dont need it since using only 8-bit grayscale
+    
+    params.filterByArea = True
+    params.minArea = min_area_var.get()
+    #params.maxArea = max_area
+
+    params.filterByCircularity = False
+    params.minCircularity = min_circ_var.get()
+    #params.maxCircularity = max_circ
+
+    params.filterByConvexity = False
+    params.minConvexity = min_conv_var.get()
+    #params.maxConvexity = max_convex
+
+    params.filterByInertia = False
+    params.minInertiaRatio = min_inertia_var.get()
+    #params.maxInertiaRatio = max_inertia
+
+    params.minThreshold = min_thresh_var.get()
+    params.maxThreshold = max_thresh_var.get()
+
+    params.minDistBetweenBlobs = min_dist_var.get()
+
+    params.minRepeatability = min_repeat_var.get()
+
+    detector = cv2.SimpleBlobDetector_create(params)
+
+    img_keypoints.clear()
+    img_ref.clear()
+
+    for img in images:
+
+        keypoints = detector.detect(img)
+        img_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (255,0,0), cv2.DrawMatchesFlags_DRAW_RICH_KEYPOINTS)
+        img_keypoints.append(img_with_keypoints)
+        num_blobs = len(keypoints)
+
+        number_of_spots.append(num_blobs)
+    
+    df = pd.DataFrame({"Image Name": img_name, "Spot Count": number_of_spots})
+
+      
+
+    refresh_image_display()
+    refresh_pandas_display()
 
 def refresh_image_display():
 
@@ -297,6 +344,12 @@ def refresh_image_display():
         img_label = tk.Label(frame_img, text= filename)
         img_label.grid(column=column, row=row * 2, padx=10, pady=10)
 
+def refresh_pandas_display():
+    for widget in frame_pandas.winfo_children():
+        widget.destroy()
+    table = pdt.Table(frame_pandas, dataframe=df)
+    table.show()
+    
 
 # creating a class for the right frame functions window to display images
 class img_wind(tk.Frame):
@@ -311,12 +364,13 @@ class pandas_wind(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.grid(sticky= "nw")
-        self.display_pandas()
+        #self.display_pandas()
 
-    def display_pandas(self):
-        df = pd.DataFrame()
-        df = pdt.Table(frame_pandas, dataframe=df)
-        df.show()    
+    #def display_pandas(self):
+        #df = pd.DataFrame()
+        #df = pdt.Table(frame_pandas, dataframe=df)
+        #df.show()
+        
 
 app = menuBar(main_frame)
 app = oper_wind(frame_ops)
